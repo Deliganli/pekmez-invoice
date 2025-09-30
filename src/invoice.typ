@@ -111,7 +111,7 @@
     #data.notes
   ]
 
-  [
+  if data.at("bank-account", default: none) != none [
     #set text(number-type: "lining")
     #box(
       inset: 10pt,
@@ -133,10 +133,12 @@
       ]
     )
   ]
+
   [
     #set text(size: 0.8em)
     #set text(number-type: "lining")
     #if data.author.at("tax_nr", default: none) != none [
+      #v(0.5em)
       #data.labels.tax-number: #data.author.tax_nr
     ]
     #v(0.5em)
