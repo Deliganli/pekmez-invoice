@@ -37,6 +37,22 @@ nix run github:Deliganli/pekmez-invoice -- \
     --output myinvoice.pdf
 ```
 
+#### Typst
+
+Via [Typst](https://typst.app/)
+
+Typst treats file paths relative to the given `typ` file. Have the file
+structure like in this repository
+
+```bash
+typst compile \
+    --input config="details.yaml" \
+    --input date="15.09.2025" \
+    --input number="1234" \
+    --items '[{"description":"Misdirecting witnesses", "price":5000 }, {"description":"Taking forever to deduce the obvious", "price":12999 }]' \
+    "./src/invoice.typ" myinvoice.pdf
+```
+
 #### Docker
 
 A bit more args with docker
