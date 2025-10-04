@@ -16,7 +16,7 @@ You need to have a configuration file
 ### Configuration
 
 Put the config file somewhere, by default it will be read from
-`$XDG_CONFIG_HOME/invoice/details.yaml`, `$XDG_CONFIG_HOME` depends on the
+`$XDG_CONFIG_HOME/pekmez-invoice/details.yaml`, `$XDG_CONFIG_HOME` depends on the
 system, but usually `~/.config`.
 
 See [example config file](./src/details.yaml)
@@ -60,7 +60,7 @@ A bit more args with docker
 ```bash
 docker run \
     -u $(id -u):$(id -g) \
-    -v "$HOME/.config/invoice:/.config/invoice:ro" \
+    -v "$HOME/.config/pekmez-invoice:/.config/pekmez-invoice:ro" \
     -v './:/app/out/' \
     ghcr.io/deliganli/pekmez-invoice \
     --invoice-date 15.09.2025 \

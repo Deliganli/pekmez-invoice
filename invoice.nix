@@ -1,17 +1,19 @@
 {
   lib,
   stdenv,
-  typst,
-  getopt,
+  pkgs,
+  # typst,
+  # getopt,
   writeShellApplication,
   ...
 }:
 let
   program = writeShellApplication {
-    name = "invoice";
-    runtimeInputs = [
+    name = "pekmez-invoice";
+    runtimeInputs = with pkgs; [
       typst
       getopt
+      coreutils
     ];
     # don't know what I am doing, copied from somebody who does
     # https://stackoverflow.com/a/29754866/4327918
@@ -34,12 +36,12 @@ let
       # read getopt’s output this way to handle the quoting right:
       eval set -- "$PARSED"
 
-      # configDir=''${XDG_CONFIG_HOME:-$HOME/.config}/invoice
+      configDir=''${XDG_CONFIG_HOME:-$HOME/.config}/pekmez-invoice
       # mkdir -p $configDir
       # cp -n lib/details.yaml "$configDir/details.yaml"
 
       outFile="''${TMPDIR:-/tmp}/invoice.pdf"
-      configFile=''${XDG_CONFIG_HOME:-$HOME/.config}/invoice/details.yaml
+      configFile=''${configDir}/details.yaml
       invoiceDate=$(date +%d.%m.%Y)
       invoiceNumber=
       items=
@@ -86,13 +88,13 @@ let
           --input date="$invoiceDate" \
           --input number="$invoiceNumber" \
           --input items="$items" \
-          "$SCRIPT_DIR/../lib/invoice/invoice.typ" "$outFile"
+          "$SCRIPT_DIR/../lib/pekmez-invoice/invoice.typ" "$outFile"
     '';
   };
 in
 stdenv.mkDerivation (final: {
-  name = "invoice";
-  version = "0.0.1";
+  pname = "pekmez-invoice";
+  version = "0.1.0";
   src = ./src;
   dontUnpack = true;
 
@@ -100,8 +102,12 @@ stdenv.mkDerivation (final: {
     runHook preInstall
 
     install -D -m 755 ${lib.getExe program} -t $out/bin/
-    install -D -m 644 ${final.src}/invoice.typ -t $out/lib/invoice/
+    install -D -m 644 ${final.src}/invoice.typ -t $out/lib/pekmez-invoice/
 
     runHook postInstall
   '';
+
+  meta = {
+    mainProgram = "pekmez-invoice";
+  };
 })
