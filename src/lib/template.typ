@@ -55,18 +55,18 @@
     #data.author.city, *#invoice-date*
   ])
 
-  let total = items.map((item) => item.price).sum()
+  let total = items.map((item) => decimal(item.price)).sum()
 
   let items = items.enumerate().map(
     ((id, item)) => (
       [#str(id + 1).],
       [#item.description],
-      [#format_currency(item.price)#data.labels.currency],
+      [#format_currency(decimal(item.price))#data.labels.currency],
     ),
   ).flatten()
 
   [
-    #let tax=data.at("tax", default: 0)
+    #let tax = decimal(data.at("tax", default: 0))
     #set text(number-type: "lining")
     #table(
       stroke: none,
@@ -82,16 +82,16 @@
         #set align(end)
         #data.labels.subtotal:
       ],
-      [#format_currency({(1.0 - tax) * total})#data.labels.currency],
+      [#format_currency({(decimal(1) - tax) * total})#data.labels.currency],
       table.hline(start: 2),
       ..if tax != 0 {(
         [],
         [
           #set text(number-type: "old-style")
           #set align(end)
-          #str(data.tax * 100)% #data.labels.tax:
+          #str(tax * 100)% #data.labels.tax:
         ],
-        [#format_currency(data.tax * total)#data.labels.currency],
+        [#format_currency(tax * total)#data.labels.currency],
         table.hline(start: 2),
         [],
       )} else {([], [], [], [])},

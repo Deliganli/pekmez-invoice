@@ -2,8 +2,6 @@
   lib,
   stdenv,
   pkgs,
-  # typst,
-  # getopt,
   writeShellApplication,
   ...
 }:
@@ -12,83 +10,105 @@ let
     name = "pekmez-invoice";
     runtimeInputs = with pkgs; [
       typst
-      getopt
       coreutils
     ];
-    # don't know what I am doing, copied from somebody who does
-    # https://stackoverflow.com/a/29754866/4327918
+
     text = ''
-      # ignore errexit with `&& true`
-      getopt --test > /dev/null && true
-      if [[ $? -ne 4 ]]; then
-          echo 'getopt --test failed in this environment.'
-          exit 1
-      fi
+      declare -A args=(
+        ["date"]=""
+        ["number"]=""
+        ["output"]="invoice.pdf"
+        ["config"]="''${XDG_CONFIG_HOME:-$HOME/.config}/pekmez-invoice/details.yaml"
+        ["items"]="[]"
+      )
 
-      LONGOPTS=invoice-date:,invoice-number:,items:,config:,output:
-      OPTIONS=d:n:i:o:c:
+      while [[ $# -gt 0 ]]; do
+        case "$1" in
+          --date|-d)
+            args["date"]="$2"
+            shift 2
+            ;;
+          --number|-n)
+            args["number"]="$2"
+            shift 2
+            ;;
+          --output|-o)
+            args["output"]="$2"
+            shift 2
+            ;;
+          --config|-c)
+            args["config"]="$2"
+            shift 2
+            ;;
+          item)
+            shift 1
 
-      # -temporarily store output to be able to check for errors
-      # -activate quoting/enhanced mode (e.g. by writing out “--options”)
-      # -pass arguments only via   -- "$@"   to separate them correctly
-      # -if getopt fails, it complains itself to stderr
-      PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@") || exit 2
-      # read getopt’s output this way to handle the quoting right:
-      eval set -- "$PARSED"
+            declare -A item_args=(
+              ["desc"]=""
+              ["price"]=""
+            )
 
-      configDir=''${XDG_CONFIG_HOME:-$HOME/.config}/pekmez-invoice
-      # mkdir -p $configDir
-      # cp -n lib/details.yaml "$configDir/details.yaml"
-
-      outFile="''${TMPDIR:-/tmp}/invoice.pdf"
-      configFile=''${configDir}/details.yaml
-      invoiceDate=$(date +%d.%m.%Y)
-      invoiceNumber=
-      items=
-
-      while true; do
-          case "$1" in
-              -o|--output)
-                  outFile="$2"
+            while [[ $# -gt 0 && $1 =~ --desc|-d|--price|-p ]]; do
+              case "$1" in
+                --desc|-l)
+                  item_args["desc"]="$2"
                   shift 2
                   ;;
-              -c|--config)
-                  configFile="$2"
+                --price|-p)
+                  item_args["price"]="$2"
                   shift 2
                   ;;
-              -d|--invoice-date)
-                  invoiceDate="$2"
-                  shift 2
-                  ;;
-              -n|--invoice-number)
-                  invoiceNumber="$2"
-                  shift 2
-                  ;;
-              -i|--items)
-                  items="$2"
-                  shift 2
-                  ;;
-              --)
-                  shift
+                *)
                   break
                   ;;
-              *)
-                  echo "Programming error"
-                  exit 3
-                  ;;
-          esac
+              esac
+            done
+
+            if [[ -z "''${item_args["desc"]}" ]]; then
+              echo "Missing required argument: --desc"
+              exit 1
+            elif [[ -z "''${item_args["price"]}" ]]; then
+              echo "Missing required argument: --price"
+              exit 1
+            fi
+
+            item_json=$(jq --null-input \
+              --arg desc "''${item_args["desc"]}" \
+              --arg price "''${item_args["price"]}" \
+              '{"description": $desc, "price": $price}')
+
+            args["items"]=$(echo "''${args["items"]}" | jq \
+              --argjson item "$item_json" \
+              '. + [$item]')
+            ;;
+          *)
+            echo "$@"
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+        esac
       done
 
-      ABS_CONFIG_FILE=$(realpath "$configFile")
-      SCRIPT_DIR=$( cd -- "$( dirname -- "''${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+      if [[ -z "''${args["date"]}" ]]; then
+        echo "Missing required argument: --date"
+        exit 1
+      elif [[ -z "''${args["number"]}" ]]; then
+        echo "Missing required argument: --number"
+        exit 1
+      elif [[ "''${args["items"]}" = [] ]]; then
+        echo "Missing required command: item"
+        exit 1
+      fi
+
+      SCRIPT_DIR=$(cd -- "$(dirname -- "''${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
       typst compile \
           --root / \
-          --input config="$ABS_CONFIG_FILE" \
-          --input date="$invoiceDate" \
-          --input number="$invoiceNumber" \
-          --input items="$items" \
-          "$SCRIPT_DIR/../lib/pekmez-invoice/invoice.typ" "$outFile"
+          --input config="$(realpath "''${args["config"]}")" \
+          --input date="''${args["date"]}" \
+          --input number="''${args["number"]}" \
+          --input items="''${args["items"]}" \
+          "$SCRIPT_DIR/../lib/template.typ" "''${args["output"]}"
     '';
   };
 in
@@ -102,12 +122,15 @@ stdenv.mkDerivation (final: {
     runHook preInstall
 
     install -D -m 755 ${lib.getExe program} -t $out/bin/
-    install -D -m 644 ${final.src}/invoice.typ -t $out/lib/pekmez-invoice/
+    install -D -m 644 ${final.src}/lib/template.typ -t $out/lib/
 
     runHook postInstall
   '';
 
   meta = {
+    homepage = "https://github.com/Deliganli/pekmez-invoice";
+    description = "Minimalistic CLI friendly invoice generator";
+    license = lib.licenses.gpl3;
     mainProgram = "pekmez-invoice";
   };
 })

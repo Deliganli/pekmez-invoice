@@ -15,7 +15,7 @@ You need to have a configuration file
 
 ### Configuration
 
-Put the config file somewhere, by default it will be read from
+Put the config file somewhere, by default it will read from
 `$XDG_CONFIG_HOME/pekmez-invoice/details.yaml`, `$XDG_CONFIG_HOME` depends on the
 system, but usually `~/.config`.
 
@@ -31,9 +31,10 @@ Straightforward to run with [Nix](https://nixos.org/)
 
 ```bash
 nix run github:Deliganli/pekmez-invoice -- \
-    --invoice-date 15.09.2025 \
-    --invoice-number 1234 \
-    --items '[{"description":"Misdirecting witnesses", "price":5000 }, {"description":"Taking forever to deduce the obvious", "price":12999 }]' \
+    --date 15.09.2025 \
+    --number 1234 \
+    item -l "Misdirecting witnesses" -p 5000 \
+    item -l "Taking forever to deduce the obvious" -p 12999 \
     --output myinvoice.pdf
 ```
 
@@ -41,16 +42,16 @@ nix run github:Deliganli/pekmez-invoice -- \
 
 Via [Typst](https://typst.app/)
 
-Typst treats file paths relative to the given `typ` file. Have the file
-structure like in this repository
+Typst treats file paths relative to the given `typ` file. So `cd` into
+where this code exists.
 
 ```bash
 typst compile \
     --input config="details.yaml" \
     --input date="15.09.2025" \
     --input number="1234" \
-    --items '[{"description":"Misdirecting witnesses", "price":5000 }, {"description":"Taking forever to deduce the obvious", "price":12999 }]' \
-    "./src/invoice.typ" myinvoice.pdf
+    --input items='[{"description":"Misdirecting witnesses", "price":5000 }, {"description":"Taking forever to deduce the obvious", "price":12999 }]' \
+    "./src/lib/template.typ" myinvoice.pdf
 ```
 
 #### Docker
@@ -63,13 +64,20 @@ docker run \
     -v "$HOME/.config/pekmez-invoice:/.config/pekmez-invoice:ro" \
     -v './:/app/out/' \
     ghcr.io/deliganli/pekmez-invoice \
-    --invoice-date 15.09.2025 \
-    --invoice-number 1234 \
-    --items '[{"description":"Misdirecting witnesses", "price":5000 }, {"description":"Taking forever to deduce the obvious", "price":12999 }]' \
+    --date 15.09.2025 \
+    --number 1234 \
+    item -l "Misdirecting witnesses" -p 5000 \
+    item -l "Taking forever to deduce the obvious" -p 12999 \
     --output out/myinvoice.pdf
 ```
 
-Find the `myinvoice.pdf` in the directory you run this command
+- `-u $(id -u):$(id -g)`: this is to use same file permissions as our current user
+- `-v "$HOME/.config/pekmez-invoice:/.config/pekmez-invoice:ro"` : mount the
+config file to container so it can access
+- `-v './:/app/out/'` : mount the current directory as output
+
+Rest is the same as others. After running, find the `myinvoice.pdf` in the
+directory you run this command
 
 ### Thanks
 
