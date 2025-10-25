@@ -1,0 +1,94 @@
+---
+name: "CI"
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  pull_request:
+
+jobs:
+  lint:
+    name: Run formatting and linting checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            extra-platforms = ${{ inputs.target_triple }}
+
+  ci-x86_64-linux:
+    uses: ./.github/workflows/ci-unix.yml
+    with:
+      build_runner: ubuntu-latest
+      target_triple: x86_64-linux
+    secrets: inherit
+
+  ci-x86_64-windows:
+    uses: ./.github/workflows/ci-unix.yml
+    with:
+      build_runner: ubuntu-latest
+      target_triple: x86_64-windows
+    secrets: inherit
+
+  ci-aarch64-linux:
+    uses: ./.github/workflows/ci-unix.yml
+    with:
+      build_runner: ubuntu-latest
+      target_triple: aarch64-linux
+    secrets: inherit
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs:
+      - ci-x86_64-linux
+      - ci-x86_64-windows
+      - ci-aarch64-linux
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: stage
+
+      - name: Assemble release directory
+        run: |
+          tree
+          echo '---------------'
+
+          for i in stage/pekmez-*; do
+            cp example/config.yaml "$i/"
+          done
+
+          pushd stage || exit
+
+          mkdir release
+
+          chmod +x pekmez-x86_64-linux/pekmez-invoice
+          tar -czf \
+            release/pekmez-invoice-x86_64-linux.tar.gz \
+            pekmez-x86_64-linux/
+
+          chmod +x pekmez-aarch64-linux/pekmez-invoice
+          tar -czf \
+            release/pekmez-invoice-aarch64-linux.tar.gz \
+            pekmez-aarch64-linux/
+
+          zip -r \
+            release/pekmez-invoice-x86_64-windows \
+            pekmez-x86_64-windows/
+
+          tree
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          body_path: RELEASE.md
+          files: stage/release/pekmez-invoice-*

@@ -11,75 +11,79 @@ from CLI.
 
 ## Usage
 
-You need to have a configuration file
+```
+Minimalistic CLI invoice generator
 
-### Configuration
+Usage: pekmez-invoice [OPTIONS] --number <NUMBER> --date <DATE> --item <DESCRIPTION=PRICE>
+
+Options:
+  -n, --number <NUMBER>           Invoice number
+  -d, --date <DATE>               Invoice date
+  -c, --config <FILE>             Config file path. If left undefined, tries to find in sensible places, like $HOME, $XDG_CONFIG_HOME or $USERPROFILE
+  -o, --output <FILE>             Output file [default: output.pdf]
+  -i, --item <DESCRIPTION=PRICE>  Invoice lines
+  -v, --verbose
+  -h, --help                      Print help
+  -V, --version                   Print version
+
+
+    Example usage;
+    pekmez-invoice --number 123 --date 25.10.2025 "Misdirecting witnesses=5000" --item "Taking forever to deduce the obvious=12999" --config ./config.yaml
+```
+
+## Configuration
+
+It runs with sensible [defaults](./src/res/defaults.yaml) for English language. But you want to set the author and recipient of your invoice.
+
+There is an [example](./example/config.yaml) config file bundled with the executables. You can modify it.
 
 Put the config file somewhere, by default it will read from
-`$XDG_CONFIG_HOME/pekmez-invoice/details.yaml`, `$XDG_CONFIG_HOME` depends on the
+`$XDG_CONFIG_HOME/pekmez-invoice/config.yaml`, `$XDG_CONFIG_HOME` depends on the
 system, but usually `~/.config`.
 
-See [example config file](./src/details.yaml)
+Config file can be set with `--config config.yaml` option as well.
 
-### Run
+## Run
 
 Current possible ways to run is below;
 
-#### Nix
+### Binary
 
-Straightforward to run with [Nix](https://nixos.org/)
+Download the binaries, decompress and run;
+
+```bash
+pekmez-invoice \
+    --config config.yaml \
+    --date 15.09.2025 \
+    --number 1234 \
+    --item "Misdirecting witnesses=5000" \
+    --item "Taking forever to deduce the obvious=12999"
+```
+
+### Nix
+
+Run with [Nix](https://nixos.org/)
 
 ```bash
 nix run github:Deliganli/pekmez-invoice -- \
     --date 15.09.2025 \
     --number 1234 \
-    item -l "Misdirecting witnesses" -p 5000 \
-    item -l "Taking forever to deduce the obvious" -p 12999 \
-    --output myinvoice.pdf
+    --item "Misdirecting witnesses=5000" \
+    --item "Taking forever to deduce the obvious=12999"
 ```
 
-#### Typst
+### Typst
 
-Via [Typst](https://typst.app/)
+Run with [Typst](https://typst.app/)
 
 Typst treats file paths relative to the given `typ` file. So `cd` into
 where this code exists.
 
 ```bash
-typst compile \
-    --input config="details.yaml" \
-    --input date="15.09.2025" \
-    --input number="1234" \
-    --input items='[{"description":"Misdirecting witnesses", "price":5000 }, {"description":"Taking forever to deduce the obvious", "price":12999 }]' \
-    "./src/lib/template.typ" myinvoice.pdf
+typst compile "./main.typ"
 ```
 
-#### Docker
-
-A bit more args with docker
-
-```bash
-docker run \
-    -u $(id -u):$(id -g) \
-    -v "$HOME/.config/pekmez-invoice:/.config/pekmez-invoice:ro" \
-    -v './:/app/out/' \
-    ghcr.io/deliganli/pekmez-invoice \
-    --date 15.09.2025 \
-    --number 1234 \
-    item -l "Misdirecting witnesses" -p 5000 \
-    item -l "Taking forever to deduce the obvious" -p 12999 \
-    --output out/myinvoice.pdf
-```
-
-- `-u $(id -u):$(id -g)`: this is to use same file permissions as our current user
-- `-v "$HOME/.config/pekmez-invoice:/.config/pekmez-invoice:ro"` : mount the
-config file to container so it can access
-- `-v './:/app/out/'` : mount the current directory as output
-
-Rest is the same as others. After running, find the `myinvoice.pdf` in the
-directory you run this command
-
-### Thanks
+## Thanks
 
 <a name="thanks"></a>
 Inspired and straight out copied code from below projects

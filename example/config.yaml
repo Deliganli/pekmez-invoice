@@ -1,4 +1,6 @@
 ---
+tax: 0.21
+notes: "Please transfer the due amount to the following bank account within the next 14 days:"
 author:
   name: Sherlock Holmes
   street: 221B Baker Street
@@ -12,13 +14,15 @@ recipient:
   zip: WC2E 5HT
   city: London
   country: England
-bank-account:
-  name: Sherlock Holmes
-  bank: Royal Bank of England
-  iban: GB29 WEST 1234 5698 7654 32
-  bic: RYLBNK
-tax: 0.21
-notes: "Please transfer the due amount to the following bank account within the next 14 days:"
+payment:
+  - label: Recipient
+    value: Sherlock Holmes
+  - label: Institution
+    value: Royal Bank of England
+  - label: IBAN
+    value: GB29 WEST 1234 5698 7654 32
+  - label: BIC
+    value: RYLBNK
 labels:
   invoice: Invoice
   pos: Pos.
@@ -28,9 +32,5 @@ labels:
   total: Total
   tax: VAT
   currency: €
-  recipient: Recipient
-  institution: Institution
-  iban: IBAN
-  bic: BIC
-  tax-number: TIN
-  closing-statement: "Best Regards,"
+  tax_number: TIN
+  closing_statement: "Best Regards,"

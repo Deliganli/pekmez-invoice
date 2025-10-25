@@ -1,0 +1,35 @@
+on:
+  workflow_call:
+    inputs:
+      build_runner:
+        required: true
+        type: string
+      target_triple:
+        required: true
+        type: string
+
+env:
+  nix_target: ".#pekmez-${{ inputs.target_triple }}"
+  artifact: "pekmez-${{ inputs.target_triple }}"
+
+jobs:
+  build:
+    name: "Build using Nix"
+    runs-on: ${{ inputs.build_runner }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            extra-platforms = ${{ inputs.target_triple }}
+            system-features = kvm benchmark big-parallel nixos-test uid-range
+
+      - name: Build package
+        run: nix build ${{ env.nix_target }} --show-trace --log-lines 10000 --fallback
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.artifact }}
+          path: result/bin/

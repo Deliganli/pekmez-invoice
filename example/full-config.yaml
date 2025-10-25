@@ -1,0 +1,43 @@
+---
+date: '15.09.2025'
+number: '1234'
+items:
+  - desc: 'Misdirecting witnesses'
+    price: 5000
+  - desc: 'Taking forever to deduce the obvious'
+    price: 12999
+tax: 0.21
+notes: "Please transfer the due amount to the following bank account within the next 14 days:"
+author:
+  name: Sherlock Holmes
+  street: 221B Baker Street
+  zip: NW1 6XE
+  city: London
+  country: England
+  tax_nr: UK123456789
+recipient:
+  name: Professor John H. Moriarty
+  street: 12 King’s Court, Suite 3
+  zip: WC2E 5HT
+  city: London
+  country: England
+payment:
+  - label: Recipient
+    value: Sherlock Holmes
+  - label: Institution
+    value: Royal Bank of England
+  - label: IBAN
+    value: GB29 WEST 1234 5698 7654 32
+  - label: BIC
+    value: RYLBNK
+labels:
+  invoice: Invoice
+  pos: Pos.
+  description: Description
+  price: Price
+  subtotal: Subtotal
+  total: Total
+  tax: VAT
+  currency: €
+  tax_number: TIN
+  closing_statement: "Best Regards,"

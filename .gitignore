@@ -2,3 +2,4 @@ result
 .direnv/
 .envrc
 pekmez-invoice-arx
+target/
