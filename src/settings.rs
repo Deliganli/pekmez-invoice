@@ -34,12 +34,6 @@ pub struct Recipient {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[allow(unused)]
-pub struct Payment {
-    lines: Vec<Labeled>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[allow(unused)]
 pub struct Labeled {
     label: String,
     value: String,
@@ -72,7 +66,7 @@ pub struct Item {
 pub struct Settings {
     author: Option<Author>,
     recipient: Option<Recipient>,
-    payment: Option<Payment>,
+    payment: Option<Vec<Labeled>>,
     labels: Labels,
     items: Vec<Item>,
     number: String,
