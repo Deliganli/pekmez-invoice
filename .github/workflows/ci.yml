@@ -3,8 +3,10 @@ name: "CI"
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - 'test'
+    # tags:
+    #   - 'v*.*.*'
   pull_request:
 
 jobs:
@@ -41,6 +43,13 @@ jobs:
       target_triple: aarch64-linux
     secrets: inherit
 
+  ci-aarch64-darwin:
+    uses: ./.github/workflows/ci-unix.yml
+    with:
+      build_runner: macos-latest
+      target_triple: aarch64-darwin
+    secrets: inherit
+
   release:
     name: Create Release
     runs-on: ubuntu-latest
@@ -48,6 +57,7 @@ jobs:
       - ci-x86_64-linux
       - ci-x86_64-windows
       - ci-aarch64-linux
+      - ci-aarch64-darwin
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -80,6 +90,11 @@ jobs:
             release/pekmez-invoice-aarch64-linux.tar.gz \
             pekmez-aarch64-linux/
 
+          chmod +x pekmez-aarch64-darwin/pekmez-invoice
+          tar -czf \
+            release/pekmez-invoice-aarch64-darwin.tar.gz \
+            pekmez-aarch64-darwin/
+
           zip -r \
             release/pekmez-invoice-x86_64-windows \
             pekmez-x86_64-windows/
@@ -89,5 +104,6 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
+          draft: true
           body_path: RELEASE.md
           files: stage/release/pekmez-invoice-*

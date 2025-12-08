@@ -29,7 +29,7 @@
       let
         pkgs = (import nixpkgs) {
           inherit system;
-          # config.allowUnfree = true;
+          config.allowUnfree = true;
           overlays = [ fenix.overlays.default ];
         };
 
@@ -82,7 +82,7 @@
             pekmez-x86_64-linux = pkgs.callPackage ./pkgs/x86_64-unknown-linux-musl.nix deps;
             pekmez-x86_64-windows = pkgs.callPackage ./pkgs/x86_64-pc-windows-gnu.nix deps;
             pekmez-aarch64-linux = pkgs.callPackage ./pkgs/aarch64-unknown-linux-gnu.nix deps;
-            # aarch64-apple-darwin = pkgs.callPackage ./pkgs/aarch64-apple-darwin.nix deps;
+            pekmez-aarch64-darwin = pkgs.callPackage ./pkgs/aarch64-apple-darwin.nix deps;
             default = pkgs.callPackage ./pkgs/x86_64-unknown-linux-musl.nix deps;
           };
 
@@ -105,6 +105,7 @@
                 pekmez-x86_64-linux
                 pekmez-x86_64-windows
                 pekmez-aarch64-linux
+                pekmez-aarch64-darwin
               ];
               CARGO_BUILD_TARGET = "x86_64-unknown-linux-musl";
             }
